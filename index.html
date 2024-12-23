@@ -72,9 +72,8 @@
     </div>
 
     <script>
-        // Replace this URL with the link to your published Google Sheet
-        const sheetURL = 'https://spreadsheets.google.com/feeds/list/2PACX-1vRZFSENQ1qkqthLWVbVUP11PfKLg6PdUhx-REQgLwLVaZBSYiy0rw3TOXw7IN94cy5wdWdwKaaZfZ6Y/od6/public/values?alt=json
-';
+        // Correct API URL for your Google Sheets
+        const sheetURL = 'https://spreadsheets.google.com/feeds/list/2PACX-1vRZFSENQ1qkqthLWVbVUP11PfKLg6PdUhx-REQgLwLVaZBSYiy0rw3TOXw7IN94cy5wdWdwKaaZfZ6Y/od6/public/values?alt=json';
 
         // Fetch job data from the Google Sheet
         fetch(sheetURL)
@@ -107,6 +106,26 @@
                     jobLink.textContent = 'Apply Now';
                     jobLink.target = '_blank';
 
+                    // Adding additional fields (if available)
+                    if (job.gsx$requiredskills.$t) {
+                        const requiredSkills = document.createElement('div');
+                        requiredSkills.textContent = `Required Skills: ${job.gsx$requiredskills.$t}`;
+                        tile.appendChild(requiredSkills);
+                    }
+
+                    if (job.gsx$jobdescription.$t) {
+                        const jobDescription = document.createElement('div');
+                        jobDescription.textContent = `Job Description: ${job.gsx$jobdescription.$t}`;
+                        tile.appendChild(jobDescription);
+                    }
+
+                    if (job.gsx$otherdetails.$t) {
+                        const otherDetails = document.createElement('div');
+                        otherDetails.textContent = `Other Details: ${job.gsx$otherdetails.$t}`;
+                        tile.appendChild(otherDetails);
+                    }
+
+                    // Append all elements to the tile
                     tile.appendChild(title);
                     tile.appendChild(company);
                     tile.appendChild(location);
@@ -117,40 +136,14 @@
                 };
 
                 // Insert job tiles into the container
-                const jobTiles = entries.map(entry => {
-                    return createJobTile(entry);
-                });
-
-                jobTiles.forEach(tile => {
+                entries.forEach(entry => {
+                    const tile = createJobTile(entry);
                     jobContainer.appendChild(tile);
                 });
-
-                // Filter functionality
-                const jobTypeFilter = document.getElementById('jobTypeFilter');
-                const locationFilter = document.getElementById('locationFilter');
-
-                const filterJobs = () => {
-                    const jobTypeValue = jobTypeFilter.value;
-                    const locationValue = locationFilter.value;
-
-                    jobContainer.innerHTML = '';  // Clear existing job tiles
-
-                    const filteredJobs = entries.filter(entry => {
-                        const matchesJobType = jobTypeValue === 'all' || entry.gsx$jobtype.$t === jobTypeValue;
-                        const matchesLocation = locationValue === 'all' || entry.gsx$location.$t === locationValue;
-                        return matchesJobType && matchesLocation;
-                    });
-
-                    const filteredTiles = filteredJobs.map(entry => createJobTile(entry));
-                    filteredTiles.forEach(tile => {
-                        jobContainer.appendChild(tile);
-                    });
-                };
-
-                jobTypeFilter.addEventListener('change', filterJobs);
-                locationFilter.addEventListener('change', filterJobs);
             })
-            .catch(error => console.error('Error fetching data:', error));
+            .catch(error => {
+                console.error('Error fetching data:', error);
+            });
     </script>
 
 </body>
