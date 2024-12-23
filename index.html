@@ -86,8 +86,9 @@
             font-weight: bold;
             color: #007bff;
             margin-top: 10px;
-            margin-left: 40px; /* Spacing to the left for the logo */
             text-align: left;
+            margin-left: 40px;
+            margin-bottom: 5px;
         }
 
         .job-tile .company-name {
@@ -276,20 +277,20 @@
                 });
                 tile.appendChild(expandButton);
 
+                const skills = document.createElement('div');
+                skills.className = 'skills';
+                skills.innerHTML = job.skills ? job.skills.split(',').map(skill => `<span>${skill.trim()}</span>`).join('') : 'None';
+                tile.appendChild(skills);
+
                 const description = document.createElement('div');
                 description.className = 'description-short';
-                description.textContent = job.description;
+                description.textContent = job.description ? job.description.substring(0, 100) + '...' : 'No description available';
                 tile.appendChild(description);
 
                 const details = document.createElement('div');
                 details.className = 'details';
                 details.innerHTML = `
                     <strong>Salary:</strong> ${job.salary || 'Not provided'}<br>
-                    <strong>Skills:</strong>
-                    <div class="skills">
-                        ${job.skills ? job.skills.split(',').map(skill => `<span>${skill.trim()}</span>`).join('') : 'None'}
-                    </div>
-                    <strong>Description:</strong> ${job.details || 'No further details available.'}<br>
                     <strong>Other Details:</strong> ${job.details || 'N/A'}
                 `;
                 tile.appendChild(details);
