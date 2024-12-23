@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,143 +14,150 @@
         }
 
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Arial', sans-serif;
             background-color: #121212;
             color: #e0e0e0;
-            margin: 0;
-            padding: 0;
+            padding: 20px;
         }
 
         h1 {
             text-align: center;
-            margin: 20px 0;
+            margin-bottom: 20px;
         }
 
         .search-bar {
             display: flex;
             justify-content: center;
-            margin: 20px;
+            margin-bottom: 20px;
         }
 
         .search-bar input {
             width: 80%;
             padding: 10px;
-            border: 1px solid #333;
+            border: 1px solid #555;
             border-radius: 5px;
-            background-color: #1e1e1e;
+            background-color: #333;
             color: #e0e0e0;
         }
 
-        .sort-options {
+        .sort-buttons {
             display: flex;
             justify-content: center;
+            gap: 10px;
             margin-bottom: 20px;
         }
 
-        .sort-options select {
-            padding: 8px;
-            border: 1px solid #333;
+        .sort-buttons button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
             border-radius: 5px;
-            background-color: #1e1e1e;
-            color: #e0e0e0;
+            cursor: pointer;
         }
 
-        .container {
+        .sort-buttons button:hover {
+            background-color: #0056b3;
+        }
+
+        .job-container {
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
             gap: 20px;
-            padding: 20px;
         }
 
         .job-tile {
             background-color: #1e1e1e;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
             width: 300px;
-            padding: 15px;
+            padding: 20px;
+            border-radius: 10px;
             position: relative;
-            transition: transform 0.3s, opacity 0.3s;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            transition: transform 0.3s ease, opacity 0.3s ease;
         }
 
-        .job-tile .favicon {
+        .job-tile .job-title {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #007bff;
+        }
+
+        .job-tile .company-name {
+            font-size: 1.2em;
+        }
+
+        .job-tile .location {
+            font-size: 1em;
+            color: #bbb;
+        }
+
+        .job-tile .link-button {
             position: absolute;
             top: 10px;
-            left: 10px;
-            width: 24px;
-            height: 24px;
-            border-radius: 5px;
+            right: 10px;
+            background-color: transparent;
+            border: none;
+            cursor: pointer;
         }
 
-        .job-title {
-            font-size: 1.5rem;
-            color: #007bff;
-            margin-bottom: 10px;
+        .job-tile .link-button img {
+            width: 20px;
+            height: 20px;
         }
 
-        .company-name {
-            font-size: 1.1rem;
-            margin-bottom: 5px;
-        }
-
-        .job-location {
-            font-size: 0.9rem;
-            color: #aaa;
-            margin-bottom: 10px;
-        }
-
-        .expand-button {
+        .job-tile .expand-button {
             position: absolute;
             bottom: 10px;
             right: 10px;
-            font-size: 1.5rem;
+            background-color: transparent;
+            border: none;
             cursor: pointer;
-            color: #007bff;
-            transition: color 0.3s;
         }
 
-        .expand-button:hover {
-            color: #0056b3;
+        .job-tile .expand-button img {
+            width: 20px;
+            height: 20px;
         }
 
-        .job-link {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            font-size: 1.5rem;
-            cursor: pointer;
-            color: #007bff;
-            transition: color 0.3s;
+        .job-tile.expanded {
+            height: auto;
+            padding-bottom: 50px;
         }
 
-        .job-link:hover {
-            color: #0056b3;
-        }
-
-        .expanded .additional-details {
+        .job-tile.expanded .details {
             display: block;
         }
 
-        .additional-details {
+        .details {
             display: none;
-            margin-top: 10px;
+            font-size: 0.9em;
             color: #bbb;
-            font-size: 0.9rem;
+        }
+
+        .job-tile .logo {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            width: 30px;
+            height: 30px;
         }
     </style>
 </head>
+
 <body>
     <h1>Job Board</h1>
     <div class="search-bar">
         <input type="text" id="searchInput" placeholder="Search for jobs...">
     </div>
-    <div class="sort-options">
-        <select id="sortOptions">
-            <option value="recent">Sort by: Most Recent</option>
-            <option value="oldest">Sort by: Oldest</option>
-        </select>
+    <div class="sort-buttons">
+        <button id="sortRecent">Sort by Recent</button>
+        <button id="sortOldest">Sort by Oldest</button>
     </div>
-    <div class="container" id="jobContainer"></div>
+    <div class="job-container" id="jobContainer"></div>
 
     <script>
         const apiKey = 'AIzaSyAa2s_DsjZ15A6oq0BoC0v5AASOeJnAMlc';
@@ -157,113 +165,115 @@
         const sheetName = 'sheet1';
         const sheetURL = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${sheetName}?key=${apiKey}`;
 
-        const fetchFavIcon = (url) => {
-            try {
-                const domain = new URL(url).hostname;
-                return `https://www.google.com/s2/favicons?sz=32&domain=${domain}`;
-            } catch {
-                return 'https://via.placeholder.com/24';
-            }
-        };
+        const jobContainer = document.getElementById('jobContainer');
+        const searchInput = document.getElementById('searchInput');
+        const sortRecent = document.getElementById('sortRecent');
+        const sortOldest = document.getElementById('sortOldest');
 
+        let jobs = [];
+
+        // Fetch data from Google Sheets
         fetch(sheetURL)
             .then(response => response.json())
             .then(data => {
-                const entries = data.values.slice(1);
-                const jobContainer = document.getElementById('jobContainer');
-
-                const createJobTile = (job) => {
-                    const tile = document.createElement('div');
-                    tile.classList.add('job-tile');
-
-                    // Favicon
-                    const favicon = document.createElement('img');
-                    favicon.classList.add('favicon');
-                    favicon.src = fetchFavIcon(job[3]); // Assuming "Link" is at index 3
-                    tile.appendChild(favicon);
-
-                    // Job Title
-                    const title = document.createElement('div');
-                    title.classList.add('job-title');
-                    title.textContent = job[2]; // Assuming "Job Title" is at index 2
-                    tile.appendChild(title);
-
-                    // Company Name
-                    const company = document.createElement('div');
-                    company.classList.add('company-name');
-                    company.textContent = job[5]; // Assuming "Company" is at index 5
-                    tile.appendChild(company);
-
-                    // Job Location
-                    const location = document.createElement('div');
-                    location.classList.add('job-location');
-                    location.textContent = job[6]; // Assuming "Location" is at index 6
-                    tile.appendChild(location);
-
-                    // Job Link
-                    const link = document.createElement('a');
-                    link.classList.add('job-link');
-                    link.href = job[3]; // Assuming "Link" is at index 3
-                    link.target = '_blank';
-                    link.textContent = '\uD83D\uDD17'; // Unicode for the link symbol
-                    tile.appendChild(link);
-
-                    // Expand Button
-                    const expandButton = document.createElement('div');
-                    expandButton.classList.add('expand-button');
-                    expandButton.textContent = '+';
-                    expandButton.addEventListener('click', () => {
-                        tile.classList.toggle('expanded');
-                    });
-                    tile.appendChild(expandButton);
-
-                    // Additional Details
-                    const details = document.createElement('div');
-                    details.classList.add('additional-details');
-                    details.innerHTML = `
-                        <strong>Salary Range:</strong> ${job[7] || 'N/A'}<br>
-                        <strong>Job Type:</strong> ${job[1] || 'N/A'}<br>
-                        <strong>Required Skills:</strong> ${job[8] || 'N/A'}<br>
-                        <strong>Description:</strong> ${job[9] || 'N/A'}<br>
-                        <strong>Other Details:</strong> ${job[10] || 'N/A'}<br>
-                    `;
-                    tile.appendChild(details);
-
-                    return tile;
-                };
-
-                const renderJobs = (jobs) => {
-                    jobContainer.innerHTML = '';
-                    jobs.forEach(job => jobContainer.appendChild(createJobTile(job)));
-                };
-
-                const sortJobs = (jobs, sortOrder) => {
-                    return jobs.sort((a, b) => {
-                        const dateA = new Date(a[0]);
-                        const dateB = new Date(b[0]);
-                        return sortOrder === 'recent' ? dateB - dateA : dateA - dateB;
-                    });
-                };
-
-                const fuse = new Fuse(entries, {
-                    keys: [2, 5, 6, 8, 9],
-                    threshold: 0.4,
-                });
-
-                document.getElementById('searchInput').addEventListener('input', (e) => {
-                    const query = e.target.value;
-                    const results = query ? fuse.search(query).map(result => result.item) : entries;
-                    renderJobs(results);
-                });
-
-                document.getElementById('sortOptions').addEventListener('change', (e) => {
-                    const sorted = sortJobs(entries, e.target.value);
-                    renderJobs(sorted);
-                });
-
-                renderJobs(entries);
+                const rows = data.values.slice(1); // Skip headers
+                jobs = rows.map(row => ({
+                    date: row[0],
+                    type: row[1],
+                    title: row[2],
+                    link: row[3],
+                    board: row[4],
+                    company: row[5],
+                    location: row[6],
+                    salary: row[7],
+                    skills: row[8],
+                    description: row[9],
+                    details: row[10]
+                }));
+                displayJobs(jobs);
             })
             .catch(error => console.error('Error fetching data:', error));
+
+        // Display jobs in the container
+        const displayJobs = (jobs) => {
+            jobContainer.innerHTML = '';
+            jobs.forEach(job => {
+                const tile = document.createElement('div');
+                tile.className = 'job-tile';
+
+                const logo = document.createElement('img');
+                logo.className = 'logo';
+                logo.src = `https://www.google.com/s2/favicons?domain=${new URL(job.link).hostname}`;
+                tile.appendChild(logo);
+
+                const title = document.createElement('div');
+                title.className = 'job-title';
+                title.textContent = job.title;
+                tile.appendChild(title);
+
+                const company = document.createElement('div');
+                company.className = 'company-name';
+                company.textContent = job.company;
+                tile.appendChild(company);
+
+                const location = document.createElement('div');
+                location.className = 'location';
+                location.textContent = job.location;
+                tile.appendChild(location);
+
+                const linkButton = document.createElement('button');
+                linkButton.className = 'link-button';
+                linkButton.innerHTML = '<img src="https://img.icons8.com/ios-glyphs/30/external-link.png">';
+                linkButton.addEventListener('click', () => {
+                    window.open(job.link, '_blank');
+                });
+                tile.appendChild(linkButton);
+
+                const expandButton = document.createElement('button');
+                expandButton.className = 'expand-button';
+                expandButton.innerHTML = '<img src="https://img.icons8.com/ios-glyphs/30/plus.png">';
+                expandButton.addEventListener('click', () => {
+                    tile.classList.toggle('expanded');
+                });
+                tile.appendChild(expandButton);
+
+                const details = document.createElement('div');
+                details.className = 'details';
+                details.innerHTML = `
+                    <strong>Salary:</strong> ${job.salary || 'Not provided'}<br>
+                    <strong>Skills:</strong> ${job.skills || 'Not listed'}<br>
+                    <strong>Description:</strong> ${job.description || 'No description available.'}<br>
+                    <strong>Other Details:</strong> ${job.details || 'N/A'}
+                `;
+                tile.appendChild(details);
+
+                jobContainer.appendChild(tile);
+            });
+        };
+
+        // Sort jobs
+        sortRecent.addEventListener('click', () => {
+            const sorted = [...jobs].sort((a, b) => new Date(b.date) - new Date(a.date));
+            displayJobs(sorted);
+        });
+
+        sortOldest.addEventListener('click', () => {
+            const sorted = [...jobs].sort((a, b) => new Date(a.date) - new Date(b.date));
+            displayJobs(sorted);
+        });
+
+        // Search jobs
+        const fuse = new Fuse(jobs, {
+            keys: ['title', 'company', 'location', 'description', 'skills'],
+            threshold: 0.4,
+        });
+
+        searchInput.addEventListener('input', (e) => {
+            const query = e.target.value;
+            const results = fuse.search(query).map(result => result.item);
+            displayJobs(results);
+        });
     </script>
 </body>
+
 </html>
