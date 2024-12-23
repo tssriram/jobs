@@ -128,7 +128,7 @@
 <body>
 
     <!-- Heading -->
-    <h1>JOBBER,  The Job Bot</h1>
+    <h1>JOBBER, The Job Bot</h1>
 
     <!-- Filters Section -->
     <div class="filters">
@@ -148,13 +148,16 @@
     </div>
 
     <script>
-        const sheetURL = `https://sheets.googleapis.com/v4/spreadsheets/1P5OQO7OmoTj5ol3rVgsIYkGt63n4Hu6tEdF_npyYBZk/values/sheet1?key=AIzaSyAa2s_DsjZ15A6oq0BoC0v5AASOeJnAMlc`;
+        const apiKey = 'AIzaSyAa2s_DsjZ15A6oq0BoC0v5AASOeJnAMlc';  // Replace with your Google Sheets API Key
+        const spreadsheetId = '1P5OQO7OmoTj5ol3rVgsIYkGt63n4Hu6tEdF_npyYBZk'; // Replace with your Google Sheet ID
+        const sheetName = 'sheet1';  // Replace with your sheet name if different
+        const sheetURL = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${sheetName}?key=${apiKey}`;
 
-        // Fetch job data from the Google Sheet
+        // Fetch job data from the Google Sheet API
         fetch(sheetURL)
             .then(response => response.json())
             .then(data => {
-                const entries = data.feed.entry.slice(1);  // Skip the first line (headings)
+                const entries = data.values.slice(1);  // Skip the first line (headings)
                 const jobContainer = document.getElementById('jobContainer');
 
                 // Function to create a job tile
@@ -164,15 +167,15 @@
 
                     const title = document.createElement('div');
                     title.classList.add('job-title');
-                    title.textContent = job.gsx$jobtitle.$t;
+                    title.textContent = job[2];  // Assuming "Job Title" is at index 2
 
                     const description = document.createElement('div');
                     description.classList.add('job-description');
-                    description.textContent = job.gsx$jobdescription.$t || 'No description available.';
+                    description.textContent = job[7] || 'No description available.';  // Assuming "Job Description" is at index 7
 
                     const jobLink = document.createElement('a');
                     jobLink.classList.add('job-link');
-                    jobLink.href = job.gsx$link.$t;
+                    jobLink.href = job[3];  // Assuming "Link" is at index 3
                     jobLink.textContent = 'Apply Now';
                     jobLink.target = '_blank';
 
@@ -200,7 +203,7 @@
                     jobContainer.innerHTML = '';
 
                     const filteredJobs = entries.filter(entry => {
-                        const jobDate = new Date(entry.gsx$date.$t);
+                        const jobDate = new Date(entry[0]);  // Assuming "Date" is at index 0
                         if (filterValue === 'recent' && jobDate >= currentDate) {
                             return true;
                         } else if (filterValue === 'past' && jobDate < currentDate) {
