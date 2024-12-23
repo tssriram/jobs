@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Job Board</title>
+    <link rel="icon" href="tab_pic.png" type="image/png"> <!-- Add this line for the tab image -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.6.2/fuse.min.js"></script>
     <style>
         * {
@@ -84,6 +85,7 @@
             font-size: 1.5em;
             font-weight: bold;
             color: #007bff;
+            padding-left: 40px; /* Add space for the logo */
         }
 
         .job-tile .company-name {
@@ -142,8 +144,9 @@
             position: absolute;
             top: 10px;
             left: 10px;
-            width: 30px;
-            height: 30px;
+            width: 20px; /* Reduced size for better resolution */
+            height: 20px;
+            object-fit: contain;
         }
     </style>
 </head>
