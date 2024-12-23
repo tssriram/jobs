@@ -76,16 +76,36 @@
             width: 270px; /* Slightly bigger tiles */
             border-radius: 10px;
             text-align: center;
-            transition: transform 0.3s ease, opacity 0.5s ease-in-out;
-            opacity: 0;
+            opacity: 0; /* Initially invisible */
+            transform: translateY(20px); /* Slightly lowered initially */
+            transition: transform 0.5s ease, opacity 0.5s ease;
+            position: relative; /* For positioning the expand arrow */
+            max-height: 400px; /* Prevent excessive height */
+            overflow: hidden; /* Prevent overflow for the collapsed state */
         }
 
         .job-tile.visible {
             opacity: 1;
+            transform: translateY(0); /* Slide up into view */
         }
 
-        .job-tile:hover {
-            transform: scale(1.05);
+        .expand-arrow {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            cursor: pointer;
+            font-size: 1.5rem;
+            color: #64b5f6; /* Soft blue arrow */
+            transition: transform 0.3s ease;
+        }
+
+        .expand-arrow:hover {
+            color: #42a5f5;
+        }
+
+        .expanded {
+            max-height: none; /* Expand the tile fully */
+            overflow: visible;
         }
 
         .job-title {
@@ -187,9 +207,24 @@
                     jobLink.textContent = 'Apply Now';
                     jobLink.target = '_blank';
 
+                    const expandArrow = document.createElement('div');
+                    expandArrow.classList.add('expand-arrow');
+                    expandArrow.innerHTML = '↑';  // Using a simple upward arrow symbol
+
                     tile.appendChild(title);
                     tile.appendChild(description);
                     tile.appendChild(jobLink);
+                    tile.appendChild(expandArrow);
+
+                    // Toggle expanded state
+                    expandArrow.addEventListener('click', () => {
+                        tile.classList.toggle('expanded');
+                        if (tile.classList.contains('expanded')) {
+                            expandArrow.innerHTML = '↓';  // Change to downward arrow
+                        } else {
+                            expandArrow.innerHTML = '↑';  // Change to upward arrow
+                        }
+                    });
 
                     return tile;
                 };
@@ -199,6 +234,24 @@
                 jobTiles.forEach(tile => {
                     jobContainer.appendChild(tile);
                 });
+
+                // Intersection Observer for triggering tile animations
+                const observerOptions = {
+                    root: null, // use the viewport
+                    threshold: 0.5 // trigger when 50% of the tile is in view
+                };
+
+                const observer = new IntersectionObserver((entries, observer) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add('visible');
+                            observer.unobserve(entry.target); // stop observing after it enters the view
+                        }
+                    });
+                }, observerOptions);
+
+                // Observe all job tiles
+                jobTiles.forEach(tile => observer.observe(tile));
 
                 // Filter functionality by date
                 const dateFilter = document.getElementById('dateFilter');
@@ -221,11 +274,9 @@
                     });
 
                     const filteredTiles = filteredJobs.map(entry => createJobTile(entry));
-                    filteredTiles.forEach((tile, index) => {
-                        setTimeout(() => {
-                            tile.classList.add('visible');
-                            jobContainer.appendChild(tile);
-                        }, index * 200); // Add animation delay for each tile
+                    filteredTiles.forEach((tile) => {
+                        jobContainer.appendChild(tile);
+                        observer.observe(tile); // Start observing each filtered job tile
                     });
                 };
 
