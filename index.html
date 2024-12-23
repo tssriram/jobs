@@ -75,6 +75,7 @@
             opacity: 0;
             transform: translateY(20px);
             transition: transform 0.5s, opacity 0.5s;
+            position: relative;
         }
 
         .job-tile.visible {
@@ -95,24 +96,59 @@
             margin-bottom: 10px;
         }
 
-        .job-description {
+        .job-description, .additional-details {
+            display: none;
             font-size: 0.9rem;
             color: #bbb;
-            margin-bottom: 15px;
+            margin-top: 10px;
         }
 
-        .job-link {
-            display: inline-block;
-            padding: 10px;
-            background-color: #007BFF;
-            color: #fff;
-            text-decoration: none;
-            border-radius: 5px;
-            font-weight: bold;
+        .job-tile.expanded .job-description,
+        .job-tile.expanded .additional-details {
+            display: block;
+        }
+
+        .action-buttons {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .icon-button {
+            background-color: transparent;
+            border: none;
+            cursor: pointer;
+            color: #007BFF;
+            font-size: 1.2rem;
+            padding: 5px;
+            border-radius: 50%;
             transition: background-color 0.3s;
         }
 
-        .job-link:hover {
+        .icon-button:hover {
+            background-color: #333;
+        }
+
+        .expand-button {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .expand-button:hover {
             background-color: #0056b3;
         }
     </style>
@@ -155,11 +191,19 @@
                     tile.innerHTML = `
                         <div class="job-title">${job[2] || 'No Title'}</div>
                         <div class="job-details">
-                            <strong>Company:</strong> ${job[6] || 'Unknown'}<br>
-                            <strong>Location:</strong> ${job[4] || 'Not Specified'}<br>
+                            ${job[6] || 'Unknown'}<br>
+                            ${job[4] || 'Not Specified'}
                         </div>
                         <div class="job-description">${job[7] || 'No description available.'}</div>
-                        <a href="${job[10] || '#'}" class="job-link" target="_blank">Apply Now</a>
+                        <div class="additional-details">
+                            <strong>Salary:</strong> ${job[5] || 'Not provided'}<br>
+                            <strong>Job Type:</strong> ${job[8] || 'Not specified'}<br>
+                            <strong>Required Skills:</strong> ${job[9] || 'Not listed'}<br>
+                        </div>
+                        <div class="action-buttons">
+                            <button class="icon-button" onclick="window.open('${job[10] || '#'}', '_blank')">&#128279;</button>
+                        </div>
+                        <button class="expand-button" onclick="this.parentElement.classList.toggle('expanded')">+</button>
                     `;
 
                     // Make tile visible
