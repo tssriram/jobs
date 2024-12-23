@@ -89,6 +89,15 @@
             transform: translateY(0); /* Slide up into view */
         }
 
+        /* Expanded Tile */
+        .job-tile.expanded {
+            width: 400px; /* Expanded width */
+            height: auto; /* Allow height to grow */
+            padding: 30px;
+            background-color: #333; /* Dark background for expanded view */
+        }
+
+        /* Expand Icon */
         .expand-icon {
             position: absolute;
             top: 10px;
@@ -103,7 +112,7 @@
             color: #42a5f5;
         }
 
-        /* Description for expanded tile */
+        /* Show all job details when expanded */
         .expanded .job-description {
             display: block;
             font-size: 1em;
@@ -112,11 +121,17 @@
             transition: all 0.3s ease;
         }
 
+        .expanded .job-title,
+        .expanded .job-description,
+        .expanded .job-link {
+            font-size: 1.2em; /* Larger font size for expanded view */
+            margin-bottom: 20px;
+        }
+
         .expanded .expand-icon {
             transform: rotate(180deg); /* Rotate the icon when expanded */
         }
 
-        /* Initially hidden description */
         .job-description {
             display: none;
             font-size: 0.9em;
