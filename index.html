@@ -246,6 +246,9 @@
                         if (entry.isIntersecting) {
                             entry.target.classList.add('visible');
                             observer.unobserve(entry.target); // stop observing after it enters the view
+                        } else {
+                            entry.target.classList.remove('visible'); // Re-trigger animation if scroll back
+                            observer.observe(entry.target); // Re-observe when scroll back into view
                         }
                     });
                 }, observerOptions);
