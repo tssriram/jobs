@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>JOBBER, The Job Bot</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.6.2/fuse.min.js"></script> <!-- Fuse.js CDN -->
     <style>
         /* General Reset */
         * {
@@ -29,15 +30,6 @@
             font-weight: bold;
         }
 
-        .container {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-around;
-            padding: 20px;
-            transition: all 0.3s ease;
-        }
-
-        /* Filter Section */
         .filters {
             display: flex;
             justify-content: center;
@@ -53,7 +45,7 @@
             margin: 0 10px;
         }
 
-        select {
+        select, input[type="text"] {
             padding: 8px;
             font-size: 1em;
             border: 1px solid #555;
@@ -62,108 +54,117 @@
             color: #e0e0e0;
         }
 
-        .filter-label {
-            font-size: 1.1em;
-            font-weight: bold;
-            color: #e0e0e0;
+        .search-bar {
+            margin: 20px auto;
+            width: 50%;
+            display: flex;
+            justify-content: center;
+        }
+
+        .search-bar input[type="text"] {
+            width: 80%;
         }
 
         .job-tile {
-            background-color: #1e1e1e; /* Dark tile background */
+            background-color: #1e1e1e;
             box-shadow: 0 2px 15px rgba(0, 0, 0, 0.2);
             margin: 15px;
             padding: 20px;
-            width: 270px; /* Slightly bigger tiles */
+            width: 300px;
             border-radius: 10px;
             text-align: center;
-            opacity: 0; /* Initially invisible */
-            transform: translateY(20px); /* Slightly lowered initially */
+            opacity: 0;
+            transform: translateY(20px);
             transition: transform 0.5s ease, opacity 0.5s ease;
-            position: relative; /* For positioning the expand icon */
-            max-height: 400px; /* Prevent excessive height */
-            overflow: hidden; /* Prevent overflow for the collapsed state */
+            position: relative;
+            max-height: 400px;
+            overflow: hidden;
         }
 
         .job-tile.visible {
             opacity: 1;
-            transform: translateY(0); /* Slide up into view */
+            transform: translateY(0);
         }
 
-        /* Expanded Tile */
-        .job-tile.expanded {
-            width: 400px; /* Expanded width */
-            height: auto; /* Allow height to grow */
-            padding: 30px;
-            background-color: #333; /* Dark background for expanded view */
-        }
-
-        /* Expand Icon */
-        .expand-icon {
+        .expand-arrow {
             position: absolute;
             top: 10px;
             right: 10px;
+            width: 12px;
+            height: 12px;
+            border-left: 2px solid #e0e0e0;
+            border-bottom: 2px solid #e0e0e0;
+            transform: rotate(45deg);
             cursor: pointer;
-            font-size: 1.5rem;
-            color: #64b5f6; /* Soft blue color */
-            transition: transform 0.3s ease;
         }
 
-        .expand-icon:hover {
-            color: #42a5f5;
+        .job-date {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-size: 0.9em;
+            color: #999;
         }
 
-        /* Show all job details when expanded */
-        .expanded .job-description {
-            display: block;
-            font-size: 1em;
-            color: #bbb; /* Color of expanded description */
-            margin-top: 15px;
-            transition: all 0.3s ease;
+        .job-title {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #007BFF;
+            margin-bottom: 10px;
         }
 
-        .expanded .job-title,
-        .expanded .job-description,
-        .expanded .job-link {
-            font-size: 1.2em; /* Larger font size for expanded view */
-            margin-bottom: 20px;
-        }
-
-        .expanded .expand-icon {
-            transform: rotate(180deg); /* Rotate the icon when expanded */
+        .company-name, .job-location {
+            font-size: 1.2em;
+            color: #fff;
+            margin-bottom: 8px;
         }
 
         .job-description {
-            display: none;
             font-size: 0.9em;
             color: #bbb;
+            display: none;
             margin-bottom: 15px;
         }
 
-        /* Additional details */
-        .job-location, .job-salary, .job-date {
-            font-size: 1.1em;
-            color: #ccc;
-            margin-top: 10px;
+        .expanded .job-description {
+            display: block;
         }
 
-        /* Responsive Styles */
-        @media screen and (max-width: 768px) {
-            .filters {
-                flex-direction: column;
-                align-items: center;
-            }
+        .job-link {
+            background-color: #007BFF;
+            color: white;
+            padding: 10px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
 
-            .container {
-                flex-direction: column;
-                align-items: center;
-            }
+        .job-link:hover {
+            background-color: #0056b3;
+        }
+
+        .additional-details {
+            display: none;
+            margin-top: 10px;
+            color: #bbb;
+            text-align: left;
+            font-size: 0.9em;
+        }
+
+        .expanded .additional-details {
+            display: block;
         }
     </style>
 </head>
 <body>
 
-    <!-- Heading -->
     <h1>JOBBER, The Job Bot</h1>
+
+    <!-- Search Bar -->
+    <div class="search-bar">
+        <input type="text" id="searchInput" placeholder="Search for jobs..." />
+    </div>
 
     <!-- Filters Section -->
     <div class="filters">
@@ -183,78 +184,108 @@
     </div>
 
     <script>
-        const apiKey = 'AIzaSyAa2s_DsjZ15A6oq0BoC0v5AASOeJnAMlc';  // Replace with your Google Sheets API Key
-        const spreadsheetId = '1P5OQO7OmoTj5ol3rVgsIYkGt63n4Hu6tEdF_npyYBZk'; // Replace with your Google Sheet ID
-        const sheetName = 'sheet1';  // Replace with your sheet name if different
+        const apiKey = 'AIzaSyAa2s_DsjZ15A6oq0BoC0v5AASOeJnAMlc';  // Replace with your API key
+        const spreadsheetId = '1P5OQO7OmoTj5ol3rVgsIYkGt63n4Hu6tEdF_npyYBZk'; // Replace with your Sheet ID
+        const sheetName = 'sheet1'; // Replace with your Sheet name
         const sheetURL = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${sheetName}?key=${apiKey}`;
 
         // Fetch job data from the Google Sheet API
         fetch(sheetURL)
             .then(response => response.json())
             .then(data => {
-                const entries = data.values.slice(1);  // Skip the first line (headings)
+                const entries = data.values.slice(1); // Skip the first line (headings)
                 const jobContainer = document.getElementById('jobContainer');
+                const searchInput = document.getElementById('searchInput');
 
-                // Function to create a job tile
                 const createJobTile = (job) => {
                     const tile = document.createElement('div');
                     tile.classList.add('job-tile');
 
+                    // Job Date
+                    const date = document.createElement('div');
+                    date.classList.add('job-date');
+                    date.textContent = new Date(job[0]).toLocaleDateString();  // Assuming "Date" is at index 0
+                    tile.appendChild(date);
+
+                    // Expand Arrow
+                    const expandArrow = document.createElement('div');
+                    expandArrow.classList.add('expand-arrow');
+                    expandArrow.addEventListener('click', () => {
+                        tile.classList.toggle('expanded');
+                    });
+                    tile.appendChild(expandArrow);
+
+                    // Job Title
                     const title = document.createElement('div');
                     title.classList.add('job-title');
                     title.textContent = job[2];  // Assuming "Job Title" is at index 2
+                    tile.appendChild(title);
 
+                    // Company Name
+                    const companyName = document.createElement('div');
+                    companyName.classList.add('company-name');
+                    companyName.textContent = job[6] || 'Company not listed';  // Assuming "Company Name" is at index 6
+                    tile.appendChild(companyName);
+
+                    // Job Location
                     const location = document.createElement('div');
                     location.classList.add('job-location');
-                    location.textContent = job[4] || 'Location not specified';  // Assuming "Location" is at index 4
+                    location.textContent = job[4] || 'Location not listed';  // Assuming "Location" is at index 4
+                    tile.appendChild(location);
 
-                    const salary = document.createElement('div');
-                    salary.classList.add('job-salary');
-                    salary.textContent = job[5] || 'Salary not specified';  // Assuming "Salary" is at index 5
-
-                    const date = document.createElement('div');
-                    date.classList.add('job-date');
-                    date.textContent = job[0] || 'Date not specified';  // Assuming "Date" is at index 0
-
+                    // Job Description (hidden by default)
                     const description = document.createElement('div');
                     description.classList.add('job-description');
                     description.textContent = job[7] || 'No description available.';  // Assuming "Job Description" is at index 7
-
-                    const jobLink = document.createElement('a');
-                    jobLink.classList.add('job-link');
-                    jobLink.href = job[3];  // Assuming "Link" is at index 3
-                    jobLink.textContent = 'Apply Now';
-                    jobLink.target = '_blank';
-
-                    // Add expand icon
-                    const expandIcon = document.createElement('span');
-                    expandIcon.classList.add('expand-icon');
-                    expandIcon.innerHTML = '▼'; // Down caret for expand
-                    expandIcon.addEventListener('click', () => {
-                        tile.classList.toggle('expanded');
-                    });
-
-                    // Append all job details
-                    tile.appendChild(title);
-                    tile.appendChild(location);
-                    tile.appendChild(salary);
-                    tile.appendChild(date);
                     tile.appendChild(description);
-                    tile.appendChild(jobLink);
-                    tile.appendChild(expandIcon);
+
+                    // Additional Details (hidden by default)
+                    const additionalDetails = document.createElement('div');
+                    additionalDetails.classList.add('additional-details');
+                    additionalDetails.innerHTML = `
+                        <strong>Salary:</strong> ${job[5] || 'Not provided'}<br>
+                        <strong>Job Type:</strong> ${job[8] || 'Not specified'}<br>
+                        <strong>Required Skills:</strong> ${job[9] || 'Not listed'}<br>
+                    `;
+                    tile.appendChild(additionalDetails);
 
                     return tile;
                 };
 
                 // Insert job tiles into the container
                 const jobTilesArray = entries.map(entry => createJobTile(entry));
-                jobTilesArray.forEach(tile => {
-                    jobContainer.appendChild(tile);
+                jobTilesArray.forEach(tile => jobContainer.appendChild(tile));
+
+                // Initialize Fuse.js for smart search
+                const fuse = new Fuse(entries, {
+                    keys: [
+                        { name: '2', weight: 0.5 }, // Job Title - High priority
+                        { name: '7', weight: 0.3 }, // Job Description
+                        { name: '4', weight: 0.1 }, // Job Location
+                        { name: '5', weight: 0.1 }, // Job Salary
+                        { name: '6', weight: 0.1 }, // Job Company
+                    ],
+                    includeScore: true,
+                    threshold: 0.4,  // Adjust for fuzziness
                 });
 
-                // Filter functionality by date
-                const dateFilter = document.getElementById('dateFilter');
+                // Perform search and filter results
+                const performSearch = (query) => {
+                    const results = fuse.search(query).map(result => result.item);
+                    jobContainer.innerHTML = ''; // Clear existing job tiles
 
+                    const filteredTiles = results.map(entry => createJobTile(entry));
+                    filteredTiles.forEach(tile => jobContainer.appendChild(tile));
+                };
+
+                // Event listener for search input
+                searchInput.addEventListener('input', (e) => {
+                    const query = e.target.value;
+                    performSearch(query);
+                });
+
+                // Filter by date functionality
+                const dateFilter = document.getElementById('dateFilter');
                 const filterJobs = () => {
                     const filterValue = dateFilter.value;
                     const currentDate = new Date();
@@ -273,28 +304,10 @@
                     });
 
                     const filteredTiles = filteredJobs.map(entry => createJobTile(entry));
-                    filteredTiles.forEach(tile => {
-                        jobContainer.appendChild(tile);
-                    });
+                    filteredTiles.forEach(tile => jobContainer.appendChild(tile));
                 };
 
                 dateFilter.addEventListener('change', filterJobs);
-
-                // Add scroll animation
-                const allJobTiles = document.querySelectorAll('.job-tile');
-                const handleScroll = () => {
-                    const windowHeight = window.innerHeight;
-                    allJobTiles.forEach(tile => {
-                        const tileTop = tile.getBoundingClientRect().top;
-                        if (tileTop < windowHeight - 150) {
-                            tile.classList.add('visible');
-                        }
-                    });
-                };
-
-                // Initial check and on scroll event
-                window.addEventListener('scroll', handleScroll);
-                handleScroll(); // Run on page load
             })
             .catch(error => console.error('Error fetching data:', error));
     </script>
