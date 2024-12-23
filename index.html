@@ -72,78 +72,61 @@
     </div>
 
     <script>
-        // Correct API URL for your Google Sheets
-        const sheetURL = 'https://spreadsheets.google.com/feeds/list/2PACX-1vRZFSENQ1qkqthLWVbVUP11PfKLg6PdUhx-REQgLwLVaZBSYiy0rw3TOXw7IN94cy5wdWdwKaaZfZ6Y/od6/public/values?alt=json';
+        // The correct API URL for your Google Sheets (with JSONP)
+        const sheetURL = 'https://spreadsheets.google.com/feeds/list/2PACX-1vRZFSENQ1qkqthLWVbVUP11PfKLg6PdUhx-REQgLwLVaZBSYiy0rw3TOXw7IN94cy5wdWdwKaaZfZ6Y/od6/public/values?alt=json-in-script&callback=handleJobData';
 
-        // Fetch job data from the Google Sheet
-        fetch(sheetURL)
-            .then(response => response.json())
-            .then(data => {
-                const entries = data.feed.entry;
-                const jobContainer = document.getElementById('jobContainer');
+        // Function to handle the JSONP callback
+        function handleJobData(data) {
+            console.log("Fetched Data: ", data); // Log the data for debugging
 
-                // Function to create a job tile
-                const createJobTile = (job) => {
-                    const tile = document.createElement('div');
-                    tile.classList.add('job-tile');
+            const entries = data.feed.entry;
+            const jobContainer = document.getElementById('jobContainer');
 
-                    const title = document.createElement('div');
-                    title.classList.add('job-title');
-                    title.textContent = job.gsx$jobtitle.$t;
+            // Function to create a job tile
+            const createJobTile = (job) => {
+                const tile = document.createElement('div');
+                tile.classList.add('job-tile');
 
-                    const company = document.createElement('div');
-                    company.textContent = `Company: ${job.gsx$company.$t || 'N/A'}`;
+                const title = document.createElement('div');
+                title.classList.add('job-title');
+                title.textContent = job.gsx$jobtitle.$t;
 
-                    const location = document.createElement('div');
-                    location.textContent = `Location: ${job.gsx$location.$t || 'N/A'}`;
+                const company = document.createElement('div');
+                company.textContent = `Company: ${job.gsx$company.$t || 'N/A'}`;
 
-                    const salary = document.createElement('div');
-                    salary.textContent = `Salary: ${job.gsx$salaryrange.$t || 'N/A'}`;
+                const location = document.createElement('div');
+                location.textContent = `Location: ${job.gsx$location.$t || 'N/A'}`;
 
-                    const jobLink = document.createElement('a');
-                    jobLink.classList.add('job-link');
-                    jobLink.href = job.gsx$link.$t;
-                    jobLink.textContent = 'Apply Now';
-                    jobLink.target = '_blank';
+                const salary = document.createElement('div');
+                salary.textContent = `Salary: ${job.gsx$salaryrange.$t || 'N/A'}`;
 
-                    // Adding additional fields (if available)
-                    if (job.gsx$requiredskills.$t) {
-                        const requiredSkills = document.createElement('div');
-                        requiredSkills.textContent = `Required Skills: ${job.gsx$requiredskills.$t}`;
-                        tile.appendChild(requiredSkills);
-                    }
+                const jobLink = document.createElement('a');
+                jobLink.classList.add('job-link');
+                jobLink.href = job.gsx$link.$t;
+                jobLink.textContent = 'Apply Now';
+                jobLink.target = '_blank';
 
-                    if (job.gsx$jobdescription.$t) {
-                        const jobDescription = document.createElement('div');
-                        jobDescription.textContent = `Job Description: ${job.gsx$jobdescription.$t}`;
-                        tile.appendChild(jobDescription);
-                    }
+                // Append all elements to the tile
+                tile.appendChild(title);
+                tile.appendChild(company);
+                tile.appendChild(location);
+                tile.appendChild(salary);
+                tile.appendChild(jobLink);
 
-                    if (job.gsx$otherdetails.$t) {
-                        const otherDetails = document.createElement('div');
-                        otherDetails.textContent = `Other Details: ${job.gsx$otherdetails.$t}`;
-                        tile.appendChild(otherDetails);
-                    }
+                return tile;
+            };
 
-                    // Append all elements to the tile
-                    tile.appendChild(title);
-                    tile.appendChild(company);
-                    tile.appendChild(location);
-                    tile.appendChild(salary);
-                    tile.appendChild(jobLink);
-
-                    return tile;
-                };
-
-                // Insert job tiles into the container
-                entries.forEach(entry => {
-                    const tile = createJobTile(entry);
-                    jobContainer.appendChild(tile);
-                });
-            })
-            .catch(error => {
-                console.error('Error fetching data:', error);
+            // Insert job tiles into the container
+            entries.forEach(entry => {
+                const tile = createJobTile(entry);
+                jobContainer.appendChild(tile);
             });
+        }
+        
+        // Dynamically create the script element for JSONP request
+        const script = document.createElement('script');
+        script.src = sheetURL;
+        document.body.appendChild(script);
     </script>
 
 </body>
