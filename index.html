@@ -70,61 +70,58 @@
 
         .job-tile {
             background-color: #1e1e1e;
-            width: 300px;
+            width: 320px;
             padding: 20px;
             border-radius: 10px;
             position: relative;
             overflow: hidden;
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 15px;
             transition: transform 0.3s ease, opacity 0.3s ease;
         }
 
         .job-tile .job-title {
-            font-size: 1.5em;
+            font-size: 1.3em;
             font-weight: bold;
             color: #007bff;
             padding-left: 40px; /* Adjust for logo */
+            text-align: left;
         }
 
         .job-tile .company-name {
-            font-size: 1.2em;
+            font-size: 1.1em;
+            color: #bbb;
+            font-weight: normal;
         }
 
         .job-tile .location {
             font-size: 1em;
             color: #bbb;
+            font-style: italic;
         }
 
-        .job-tile .link-button {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background-color: transparent;
-            border: none;
-            cursor: pointer;
-        }
-
-        .job-tile .link-button img {
-            width: 20px;
-            height: 20px;
-            filter: brightness(0) saturate(100%) invert(53%) sepia(18%) saturate(1262%) hue-rotate(179deg) brightness(102%) contrast(102%);
-        }
-
+        .job-tile .link-button,
         .job-tile .expand-button {
-            position: absolute;
-            bottom: 10px;
-            right: 10px;
             background-color: transparent;
             border: none;
             cursor: pointer;
         }
 
+        .job-tile .link-button img,
         .job-tile .expand-button img {
             width: 20px;
             height: 20px;
             filter: brightness(0) saturate(100%) invert(53%) sepia(18%) saturate(1262%) hue-rotate(179deg) brightness(102%) contrast(102%);
+        }
+
+        .job-tile .date {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.9em;
+            color: #bbb;
         }
 
         .job-tile.expanded {
@@ -149,6 +146,29 @@
             width: 20px;
             height: 20px;
             object-fit: contain;
+        }
+
+        .skills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .skills span {
+            background-color: #007bff;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.9em;
+            text-transform: capitalize;
+        }
+
+        .description-short {
+            font-size: 0.9em;
+            color: #bbb;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
     </style>
 </head>
@@ -231,6 +251,11 @@
                 location.textContent = job.location;
                 tile.appendChild(location);
 
+                const date = document.createElement('div');
+                date.className = 'date';
+                date.textContent = new Date(job.date).toLocaleDateString();
+                tile.appendChild(date);
+
                 const linkButton = document.createElement('button');
                 linkButton.className = 'link-button';
                 linkButton.innerHTML = '<img src="https://img.icons8.com/ios-glyphs/30/external-link.png">';
@@ -247,12 +272,24 @@
                 });
                 tile.appendChild(expandButton);
 
+                const description = document.createElement('div');
+                description.className = 'description-short';
+                description.textContent = job.description.length > 100 ? job.description.substring(0, 100) + "..." : job.description;
+                tile.appendChild(description);
+
+                const skillsContainer = document.createElement('div');
+                skillsContainer.className = 'skills';
+                job.skills.split(',').forEach(skill => {
+                    const skillBox = document.createElement('span');
+                    skillBox.textContent = skill.trim();
+                    skillsContainer.appendChild(skillBox);
+                });
+                tile.appendChild(skillsContainer);
+
                 const details = document.createElement('div');
                 details.className = 'details';
                 details.innerHTML = `
                     <strong>Salary:</strong> ${job.salary || 'Not provided'}<br>
-                    <strong>Skills:</strong> ${job.skills || 'Not listed'}<br>
-                    <strong>Description:</strong> ${job.description || 'No description available.'}<br>
                     <strong>Other Details:</strong> ${job.details || 'N/A'}
                 `;
                 tile.appendChild(details);
@@ -275,9 +312,11 @@
         // Search jobs
         searchInput.addEventListener('input', (e) => {
             const query = e.target.value;
-            if (fuse) {  // Ensure Fuse is initialized after data is loaded
+            if (query) {
                 const results = fuse.search(query).map(result => result.item);
                 displayJobs(results);
+            } else {
+                displayJobs(jobs);
             }
         });
     </script>
