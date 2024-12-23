@@ -103,6 +103,7 @@
             color: #42a5f5;
         }
 
+        /* Description for expanded tile */
         .expanded .job-description {
             display: block;
             font-size: 1em;
@@ -113,6 +114,14 @@
 
         .expanded .expand-icon {
             transform: rotate(180deg); /* Rotate the icon when expanded */
+        }
+
+        /* Initially hidden description */
+        .job-description {
+            display: none;
+            font-size: 0.9em;
+            color: #bbb;
+            margin-bottom: 15px;
         }
 
         /* Responsive Styles */
