@@ -200,8 +200,8 @@
                 };
 
                 // Insert job tiles into the container
-                const jobTiles = entries.map(entry => createJobTile(entry));
-                jobTiles.forEach(tile => {
+                const jobTilesArray = entries.map(entry => createJobTile(entry));
+                jobTilesArray.forEach(tile => {
                     jobContainer.appendChild(tile);
                 });
 
@@ -234,10 +234,10 @@
                 dateFilter.addEventListener('change', filterJobs);
 
                 // Add scroll animation
-                const jobTiles = document.querySelectorAll('.job-tile');
+                const allJobTiles = document.querySelectorAll('.job-tile');
                 const handleScroll = () => {
                     const windowHeight = window.innerHeight;
-                    jobTiles.forEach(tile => {
+                    allJobTiles.forEach(tile => {
                         const tileTop = tile.getBoundingClientRect().top;
                         if (tileTop < windowHeight - 150) {
                             tile.classList.add('visible');
