@@ -3,85 +3,158 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Job Listings</title>
+    <title>JOBBER, The Job Bot</title>
     <style>
+        /* General Reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f9;
+            font-family: 'Arial', sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
             margin: 0;
             padding: 0;
         }
+
+        h1 {
+            text-align: center;
+            margin-top: 50px;
+            color: #333;
+            font-size: 3rem;
+            font-weight: bold;
+        }
+
         .container {
             display: flex;
             flex-wrap: wrap;
             justify-content: space-around;
             padding: 20px;
         }
-        .job-tile {
-            background-color: #fff;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            margin: 10px;
-            padding: 15px;
-            border-radius: 8px;
-            width: 250px;
-            text-align: center;
-            transition: transform 0.3s ease;
-        }
-        .job-tile:hover {
-            transform: scale(1.05);
-        }
-        .job-title {
-            font-size: 1.2em;
-            font-weight: bold;
-            margin-bottom: 10px;
-        }
+
+        /* Filter Section */
         .filters {
             display: flex;
             justify-content: center;
-            padding: 10px;
+            gap: 20px;
+            padding: 20px;
             background-color: #fff;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
         }
+
         .filter {
             margin: 0 10px;
         }
+
         select {
             padding: 8px;
             font-size: 1em;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #fff;
         }
+
+        .filter-label {
+            font-size: 1.1em;
+            font-weight: bold;
+        }
+
+        .job-tile {
+            background-color: #fff;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+            margin: 15px;
+            padding: 20px;
+            width: 250px;
+            border-radius: 10px;
+            text-align: center;
+            transition: transform 0.3s ease;
+            cursor: pointer;
+        }
+
+        .job-tile:hover {
+            transform: scale(1.05);
+        }
+
+        .job-title {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #007BFF;
+            margin-bottom: 10px;
+        }
+
+        .job-description {
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 15px;
+        }
+
         .job-link {
-            display: inline-block;
-            margin-top: 10px;
             background-color: #007BFF;
             color: white;
-            padding: 8px;
+            padding: 10px;
             text-decoration: none;
-            border-radius: 4px;
+            border-radius: 5px;
+            font-weight: bold;
+            transition: background-color 0.3s;
         }
+
         .job-link:hover {
             background-color: #0056b3;
+        }
+
+        .date-filter {
+            margin: 20px 0;
+        }
+
+        /* Responsive Styles */
+        @media screen and (max-width: 768px) {
+            .filters {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .container {
+                flex-direction: column;
+                align-items: center;
+            }
         }
     </style>
 </head>
 <body>
 
-    <!-- Job Tiles -->
+    <!-- Heading -->
+    <h1>JOBBER,  The Job Bot</h1>
+
+    <!-- Filters Section -->
+    <div class="filters">
+        <div class="filter">
+            <label for="dateFilter" class="filter-label">Filter by Date:</label>
+            <select id="dateFilter">
+                <option value="all">All Dates</option>
+                <option value="recent">Recent</option>
+                <option value="past">Past Jobs</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Job Tiles Container -->
     <div class="container" id="jobContainer">
         <!-- Job tiles will be inserted here -->
     </div>
 
     <script>
-        // Replace with your API key
-        const apiKey = 'YOUR_API_KEY';
-        const spreadsheetId = 'your_spreadsheet_id';
-        const sheetName = 'Sheet1'; // Update if your sheet name is different
-        const sheetURL = `https://sheets.googleapis.com/v4/spreadsheets/1P5OQO7OmoTj5ol3rVgsIYkGt63n4Hu6tEdF_npyYBZk/values/sheet1?key=AIzaSyAa2s_DsjZ15A6oq0BoC0v5AASOeJnAMlc`;
-        // Fetch job data from the Google Sheets API
+        const sheetURL = process.env.GITHUB_SHEET_URL;
+
+        // Fetch job data from the Google Sheet
         fetch(sheetURL)
             .then(response => response.json())
             .then(data => {
-                const entries = data.values;
+                const entries = data.feed.entry.slice(1);  // Skip the first line (headings)
                 const jobContainer = document.getElementById('jobContainer');
 
                 // Function to create a job tile
@@ -91,42 +164,60 @@
 
                     const title = document.createElement('div');
                     title.classList.add('job-title');
-                    title.textContent = job[2];  // Job Title column
+                    title.textContent = job.gsx$jobtitle.$t;
 
-                    const company = document.createElement('div');
-                    company.textContent = `Company: ${job[4] || 'N/A'}`;  // Company column
-
-                    const location = document.createElement('div');
-                    location.textContent = `Location: ${job[5] || 'N/A'}`;  // Location column
-
-                    const salary = document.createElement('div');
-                    salary.textContent = `Salary: ${job[6] || 'N/A'}`;  // Salary column
+                    const description = document.createElement('div');
+                    description.classList.add('job-description');
+                    description.textContent = job.gsx$jobdescription.$t || 'No description available.';
 
                     const jobLink = document.createElement('a');
                     jobLink.classList.add('job-link');
-                    jobLink.href = job[3];  // Link column
+                    jobLink.href = job.gsx$link.$t;
                     jobLink.textContent = 'Apply Now';
                     jobLink.target = '_blank';
 
-                    // Append all elements to the tile
                     tile.appendChild(title);
-                    tile.appendChild(company);
-                    tile.appendChild(location);
-                    tile.appendChild(salary);
+                    tile.appendChild(description);
                     tile.appendChild(jobLink);
 
                     return tile;
                 };
 
                 // Insert job tiles into the container
-                entries.forEach(entry => {
-                    const tile = createJobTile(entry);
+                const jobTiles = entries.map(entry => createJobTile(entry));
+                jobTiles.forEach(tile => {
                     jobContainer.appendChild(tile);
                 });
+
+                // Filter functionality by date
+                const dateFilter = document.getElementById('dateFilter');
+
+                const filterJobs = () => {
+                    const filterValue = dateFilter.value;
+                    const currentDate = new Date();
+
+                    // Clear existing job tiles
+                    jobContainer.innerHTML = '';
+
+                    const filteredJobs = entries.filter(entry => {
+                        const jobDate = new Date(entry.gsx$date.$t);
+                        if (filterValue === 'recent' && jobDate >= currentDate) {
+                            return true;
+                        } else if (filterValue === 'past' && jobDate < currentDate) {
+                            return true;
+                        }
+                        return filterValue === 'all';
+                    });
+
+                    const filteredTiles = filteredJobs.map(entry => createJobTile(entry));
+                    filteredTiles.forEach(tile => {
+                        jobContainer.appendChild(tile);
+                    });
+                };
+
+                dateFilter.addEventListener('change', filterJobs);
             })
-            .catch(error => {
-                console.error('Error fetching data:', error);
-            });
+            .catch(error => console.error('Error fetching data:', error));
     </script>
 
 </body>
