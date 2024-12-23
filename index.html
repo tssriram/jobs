@@ -79,7 +79,7 @@
             opacity: 0; /* Initially invisible */
             transform: translateY(20px); /* Slightly lowered initially */
             transition: transform 0.5s ease, opacity 0.5s ease;
-            position: relative; /* For positioning the expand arrow */
+            position: relative; /* For positioning the expand icon */
             max-height: 400px; /* Prevent excessive height */
             overflow: hidden; /* Prevent overflow for the collapsed state */
         }
@@ -89,54 +89,30 @@
             transform: translateY(0); /* Slide up into view */
         }
 
-        .expand-arrow {
+        .expand-icon {
             position: absolute;
             top: 10px;
             right: 10px;
             cursor: pointer;
             font-size: 1.5rem;
-            color: #64b5f6; /* Soft blue arrow */
+            color: #64b5f6; /* Soft blue color */
             transition: transform 0.3s ease;
         }
 
-        .expand-arrow:hover {
+        .expand-icon:hover {
             color: #42a5f5;
         }
 
-        .expanded {
-            max-height: none; /* Expand the tile fully */
-            overflow: visible;
+        .expanded .job-description {
+            display: block;
+            font-size: 1em;
+            color: #bbb; /* Color of expanded description */
+            margin-top: 15px;
+            transition: all 0.3s ease;
         }
 
-        .job-title {
-            font-size: 1.3em;
-            font-weight: bold;
-            color: #64b5f6; /* Soft blue */
-            margin-bottom: 10px;
-        }
-
-        .job-description {
-            font-size: 0.9em;
-            color: #bbb; /* Light gray text */
-            margin-bottom: 15px;
-        }
-
-        .job-link {
-            background-color: #64b5f6;
-            color: white;
-            padding: 10px;
-            text-decoration: none;
-            border-radius: 5px;
-            font-weight: bold;
-            transition: background-color 0.3s;
-        }
-
-        .job-link:hover {
-            background-color: #42a5f5;
-        }
-
-        .date-filter {
-            margin: 20px 0;
+        .expanded .expand-icon {
+            transform: rotate(180deg); /* Rotate the icon when expanded */
         }
 
         /* Responsive Styles */
@@ -207,24 +183,18 @@
                     jobLink.textContent = 'Apply Now';
                     jobLink.target = '_blank';
 
-                    const expandArrow = document.createElement('div');
-                    expandArrow.classList.add('expand-arrow');
-                    expandArrow.innerHTML = '↑';  // Using a simple upward arrow symbol
+                    // Add expand icon
+                    const expandIcon = document.createElement('span');
+                    expandIcon.classList.add('expand-icon');
+                    expandIcon.innerHTML = '▼'; // Down caret for expand
+                    expandIcon.addEventListener('click', () => {
+                        tile.classList.toggle('expanded');
+                    });
 
                     tile.appendChild(title);
                     tile.appendChild(description);
                     tile.appendChild(jobLink);
-                    tile.appendChild(expandArrow);
-
-                    // Toggle expanded state
-                    expandArrow.addEventListener('click', () => {
-                        tile.classList.toggle('expanded');
-                        if (tile.classList.contains('expanded')) {
-                            expandArrow.innerHTML = '↓';  // Change to downward arrow
-                        } else {
-                            expandArrow.innerHTML = '↑';  // Change to upward arrow
-                        }
-                    });
+                    tile.appendChild(expandIcon);
 
                     return tile;
                 };
@@ -234,27 +204,6 @@
                 jobTiles.forEach(tile => {
                     jobContainer.appendChild(tile);
                 });
-
-                // Intersection Observer for triggering tile animations
-                const observerOptions = {
-                    root: null, // use the viewport
-                    threshold: 0.5 // trigger when 50% of the tile is in view
-                };
-
-                const observer = new IntersectionObserver((entries, observer) => {
-                    entries.forEach(entry => {
-                        if (entry.isIntersecting) {
-                            entry.target.classList.add('visible');
-                            observer.unobserve(entry.target); // stop observing after it enters the view
-                        } else {
-                            entry.target.classList.remove('visible'); // Re-trigger animation if scroll back
-                            observer.observe(entry.target); // Re-observe when scroll back into view
-                        }
-                    });
-                }, observerOptions);
-
-                // Observe all job tiles
-                jobTiles.forEach(tile => observer.observe(tile));
 
                 // Filter functionality by date
                 const dateFilter = document.getElementById('dateFilter');
@@ -277,16 +226,28 @@
                     });
 
                     const filteredTiles = filteredJobs.map(entry => createJobTile(entry));
-                    filteredTiles.forEach((tile) => {
+                    filteredTiles.forEach(tile => {
                         jobContainer.appendChild(tile);
-                        observer.observe(tile); // Start observing each filtered job tile
                     });
                 };
 
                 dateFilter.addEventListener('change', filterJobs);
 
-                // Initial load
-                filterJobs();
+                // Add scroll animation
+                const jobTiles = document.querySelectorAll('.job-tile');
+                const handleScroll = () => {
+                    const windowHeight = window.innerHeight;
+                    jobTiles.forEach(tile => {
+                        const tileTop = tile.getBoundingClientRect().top;
+                        if (tileTop < windowHeight - 150) {
+                            tile.classList.add('visible');
+                        }
+                    });
+                };
+
+                // Initial check and on scroll event
+                window.addEventListener('scroll', handleScroll);
+                handleScroll(); // Run on page load
             })
             .catch(error => console.error('Error fetching data:', error));
     </script>
