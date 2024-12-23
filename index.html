@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Job Board</title>
-    <link rel="icon" href="tab_pic.png" type="image/png"> <!-- Add this line for the tab image -->
+    <link rel="icon" href="tab_pic.png" type="image/png"> <!-- Tab picture -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.6.2/fuse.min.js"></script>
     <style>
         * {
@@ -85,7 +85,7 @@
             font-size: 1.5em;
             font-weight: bold;
             color: #007bff;
-            padding-left: 40px; /* Add space for the logo */
+            padding-left: 40px; /* Adjust for logo */
         }
 
         .job-tile .company-name {
@@ -102,9 +102,7 @@
             top: 10px;
             right: 10px;
             background-color: transparent;
-            border: 2px solid #007bff; /* Border to make it visible */
-            border-radius: 50%;
-            padding: 5px;
+            border: none;
             cursor: pointer;
         }
 
@@ -119,9 +117,7 @@
             bottom: 10px;
             right: 10px;
             background-color: transparent;
-            border: 2px solid #007bff; /* Border to make it visible */
-            border-radius: 50%;
-            padding: 5px;
+            border: none;
             cursor: pointer;
         }
 
@@ -150,7 +146,7 @@
             position: absolute;
             top: 10px;
             left: 10px;
-            width: 20px; /* Reduced size for better resolution */
+            width: 20px;
             height: 20px;
             object-fit: contain;
         }
@@ -180,6 +176,7 @@
         const sortOldest = document.getElementById('sortOldest');
 
         let jobs = [];
+        let fuse;
 
         // Fetch data from Google Sheets
         fetch(sheetURL)
@@ -199,6 +196,10 @@
                     description: row[9],
                     details: row[10]
                 }));
+                fuse = new Fuse(jobs, {
+                    keys: ['title', 'company', 'location', 'description', 'skills'],
+                    threshold: 0.4,
+                });
                 displayJobs(jobs);
             })
             .catch(error => console.error('Error fetching data:', error));
@@ -272,14 +273,9 @@
         });
 
         // Search jobs
-        const fuse = new Fuse(jobs, {
-            keys: ['title', 'company', 'location', 'description', 'skills'],
-            threshold: 0.4,
-        });
-
         searchInput.addEventListener('input', (e) => {
             const query = e.target.value;
-            if (jobs.length > 0) {
+            if (fuse) {  // Ensure Fuse is initialized after data is loaded
                 const results = fuse.search(query).map(result => result.item);
                 displayJobs(results);
             }
