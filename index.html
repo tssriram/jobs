@@ -139,6 +139,13 @@
             margin-bottom: 15px;
         }
 
+        /* Additional details */
+        .job-location, .job-salary, .job-date {
+            font-size: 1.1em;
+            color: #ccc;
+            margin-top: 10px;
+        }
+
         /* Responsive Styles */
         @media screen and (max-width: 768px) {
             .filters {
@@ -197,6 +204,18 @@
                     title.classList.add('job-title');
                     title.textContent = job[2];  // Assuming "Job Title" is at index 2
 
+                    const location = document.createElement('div');
+                    location.classList.add('job-location');
+                    location.textContent = job[4] || 'Location not specified';  // Assuming "Location" is at index 4
+
+                    const salary = document.createElement('div');
+                    salary.classList.add('job-salary');
+                    salary.textContent = job[5] || 'Salary not specified';  // Assuming "Salary" is at index 5
+
+                    const date = document.createElement('div');
+                    date.classList.add('job-date');
+                    date.textContent = job[0] || 'Date not specified';  // Assuming "Date" is at index 0
+
                     const description = document.createElement('div');
                     description.classList.add('job-description');
                     description.textContent = job[7] || 'No description available.';  // Assuming "Job Description" is at index 7
@@ -215,7 +234,11 @@
                         tile.classList.toggle('expanded');
                     });
 
+                    // Append all job details
                     tile.appendChild(title);
+                    tile.appendChild(location);
+                    tile.appendChild(salary);
+                    tile.appendChild(date);
                     tile.appendChild(description);
                     tile.appendChild(jobLink);
                     tile.appendChild(expandIcon);
