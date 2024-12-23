@@ -77,17 +77,17 @@
             overflow: hidden;
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 10px;
             transition: transform 0.3s ease, opacity 0.3s ease;
         }
 
         .job-tile .job-title {
-            font-size: 1.2em;
+            font-size: 1.1em;
             font-weight: bold;
             color: #007bff;
-            padding-left: 40px; /* Adjust for logo */
+            margin-top: 10px;
+            margin-left: 40px; /* Spacing to the left for the logo */
             text-align: left;
-            margin-top: 15px;
         }
 
         .job-tile .company-name {
@@ -121,7 +121,7 @@
             top: 10px;
             left: 50%;
             transform: translateX(-50%);
-            font-size: 0.95em;
+            font-size: 0.9em;
             color: #888; /* Lighter grey for less visibility */
         }
 
@@ -150,7 +150,7 @@
         }
 
         .skills {
-            display: flex;
+            display: none;
             flex-wrap: wrap;
             gap: 10px;
             margin-top: 10px;
@@ -271,27 +271,25 @@
                 expandButton.innerHTML = '<img src="https://img.icons8.com/ios-glyphs/30/plus.png">';
                 expandButton.addEventListener('click', () => {
                     tile.classList.toggle('expanded');
+                    const skillsContainer = tile.querySelector('.skills');
+                    skillsContainer.style.display = skillsContainer.style.display === 'none' ? 'flex' : 'none';
                 });
                 tile.appendChild(expandButton);
 
                 const description = document.createElement('div');
                 description.className = 'description-short';
-                description.textContent = job.description.length > 100 ? job.description.substring(0, 100) + "..." : job.description;
+                description.textContent = job.description;
                 tile.appendChild(description);
-
-                const skillsContainer = document.createElement('div');
-                skillsContainer.className = 'skills';
-                job.skills.split(',').forEach(skill => {
-                    const skillBox = document.createElement('span');
-                    skillBox.textContent = skill.trim();
-                    skillsContainer.appendChild(skillBox);
-                });
-                tile.appendChild(skillsContainer);
 
                 const details = document.createElement('div');
                 details.className = 'details';
                 details.innerHTML = `
                     <strong>Salary:</strong> ${job.salary || 'Not provided'}<br>
+                    <strong>Skills:</strong>
+                    <div class="skills">
+                        ${job.skills ? job.skills.split(',').map(skill => `<span>${skill.trim()}</span>`).join('') : 'None'}
+                    </div>
+                    <strong>Description:</strong> ${job.details || 'No further details available.'}<br>
                     <strong>Other Details:</strong> ${job.details || 'N/A'}
                 `;
                 tile.appendChild(details);
