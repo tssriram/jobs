@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Job Board</title>
-    <link rel="icon" href="tab_pic.png" type="image/png"> <!-- Tab picture -->
+    <link rel="icon" href="tab_pic.png" type="image/png">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.6.2/fuse.min.js"></script>
     <style>
         * {
@@ -79,28 +79,42 @@
             flex-direction: column;
             gap: 10px;
             transition: transform 0.3s ease, opacity 0.3s ease;
+            opacity: 0;
+            transform: translateY(50px);
+        }
+
+        .job-tile.visible {
+            opacity: 1;
+            transform: translateY(0);
         }
 
         .job-tile .job-title {
-            font-size: 1.1em;
+            font-size: 1.2em;
             font-weight: bold;
             color: #007bff;
-            margin-top: 10px;
-            text-align: left;
-            margin-left: 40px;
-            margin-bottom: 5px;
+        }
+
+        .job-tile .job-type {
+            font-size: 1em;
+            color: #bbb;
         }
 
         .job-tile .company-name {
             font-size: 1.1em;
-            color: #bbb;
             font-weight: normal;
+            color: #ddd;
         }
 
         .job-tile .location {
             font-size: 1em;
-            color: #bbb;
             font-style: italic;
+            color: #bbb;
+        }
+
+        .job-tile .icon-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: auto;
         }
 
         .job-tile .link-button,
@@ -117,61 +131,15 @@
             filter: brightness(0) saturate(100%) invert(53%) sepia(18%) saturate(1262%) hue-rotate(179deg) brightness(102%) contrast(102%);
         }
 
-        .job-tile .date {
-            position: absolute;
-            top: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 0.9em;
-            color: #888; /* Lighter grey for less visibility */
-        }
-
-        .job-tile.expanded {
-            height: auto;
-            padding-bottom: 50px;
-        }
-
-        .job-tile.expanded .details {
-            display: block;
-        }
-
         .details {
             display: none;
             font-size: 0.9em;
             color: #bbb;
-        }
-
-        .job-tile .logo {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            width: 20px;
-            height: 20px;
-            object-fit: contain;
-        }
-
-        .skills {
-            display: none;
-            flex-wrap: wrap;
-            gap: 10px;
             margin-top: 10px;
         }
 
-        .skills span {
-            background-color: #007bff;
-            color: white;
-            padding: 5px 10px;
-            border-radius: 5px;
-            font-size: 0.9em;
-            text-transform: capitalize;
-        }
-
-        .description-short {
-            font-size: 0.9em;
-            color: #bbb;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
+        .job-tile.expanded .details {
+            display: block;
         }
     </style>
 </head>
@@ -211,19 +179,15 @@
                     type: row[1],
                     title: row[2],
                     link: row[3],
-                    board: row[4],
                     company: row[5],
                     location: row[6],
-                    salary: row[7],
-                    skills: row[8],
-                    description: row[9],
-                    details: row[10]
                 }));
                 fuse = new Fuse(jobs, {
-                    keys: ['title', 'company', 'location', 'description', 'skills'],
+                    keys: ['title', 'company', 'location', 'type'],
                     threshold: 0.4,
                 });
                 displayJobs(jobs);
+                addScrollAnimation();
             })
             .catch(error => console.error('Error fetching data:', error));
 
@@ -234,80 +198,64 @@
                 const tile = document.createElement('div');
                 tile.className = 'job-tile';
 
-                const logo = document.createElement('img');
-                logo.className = 'logo';
-                logo.src = `https://www.google.com/s2/favicons?domain=${new URL(job.link).hostname}`;
-                tile.appendChild(logo);
+                tile.innerHTML = `
+                    <div class="job-title">${job.title}</div>
+                    <div class="job-type">${job.type}</div>
+                    <div class="company-name">${job.company}</div>
+                    <div class="location">${job.location}</div>
+                    <div class="icon-buttons">
+                        <button class="link-button">
+                            <img src="https://img.icons8.com/ios-glyphs/30/external-link.png" alt="Link">
+                        </button>
+                        <button class="expand-button">
+                            <img src="https://img.icons8.com/ios-glyphs/30/plus.png" alt="Expand">
+                        </button>
+                    </div>
+                    <div class="details">
+                        <strong>Date:</strong> ${new Date(job.date).toLocaleDateString()}
+                    </div>
+                `;
 
-                const title = document.createElement('div');
-                title.className = 'job-title';
-                title.textContent = job.title;
-                tile.appendChild(title);
-
-                const company = document.createElement('div');
-                company.className = 'company-name';
-                company.textContent = job.company;
-                tile.appendChild(company);
-
-                const location = document.createElement('div');
-                location.className = 'location';
-                location.textContent = job.location;
-                tile.appendChild(location);
-
-                const date = document.createElement('div');
-                date.className = 'date';
-                date.textContent = new Date(job.date).toLocaleDateString();
-                tile.appendChild(date);
-
-                const linkButton = document.createElement('button');
-                linkButton.className = 'link-button';
-                linkButton.innerHTML = '<img src="https://img.icons8.com/ios-glyphs/30/external-link.png">';
+                const linkButton = tile.querySelector('.link-button');
                 linkButton.addEventListener('click', () => {
                     window.open(job.link, '_blank');
                 });
-                tile.appendChild(linkButton);
 
-                const expandButton = document.createElement('button');
-                expandButton.className = 'expand-button';
-                expandButton.innerHTML = '<img src="https://img.icons8.com/ios-glyphs/30/plus.png">';
+                const expandButton = tile.querySelector('.expand-button');
                 expandButton.addEventListener('click', () => {
                     tile.classList.toggle('expanded');
-                    const skillsContainer = tile.querySelector('.skills');
-                    skillsContainer.style.display = skillsContainer.style.display === 'none' ? 'flex' : 'none';
                 });
-                tile.appendChild(expandButton);
-
-                const skills = document.createElement('div');
-                skills.className = 'skills';
-                skills.innerHTML = job.skills ? job.skills.split(',').map(skill => `<span>${skill.trim()}</span>`).join('') : 'None';
-                tile.appendChild(skills);
-
-                const description = document.createElement('div');
-                description.className = 'description-short';
-                description.textContent = job.description ? job.description.substring(0, 100) + '...' : 'No description available';
-                tile.appendChild(description);
-
-                const details = document.createElement('div');
-                details.className = 'details';
-                details.innerHTML = `
-                    <strong>Salary:</strong> ${job.salary || 'Not provided'}<br>
-                    <strong>Other Details:</strong> ${job.details || 'N/A'}
-                `;
-                tile.appendChild(details);
 
                 jobContainer.appendChild(tile);
             });
+        };
+
+        // Scroll Animation
+        const addScrollAnimation = () => {
+            const tiles = document.querySelectorAll('.job-tile');
+            const observer = new IntersectionObserver(entries => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.1 });
+
+            tiles.forEach(tile => observer.observe(tile));
         };
 
         // Sort jobs
         sortRecent.addEventListener('click', () => {
             const sorted = [...jobs].sort((a, b) => new Date(b.date) - new Date(a.date));
             displayJobs(sorted);
+            addScrollAnimation();
         });
 
         sortOldest.addEventListener('click', () => {
             const sorted = [...jobs].sort((a, b) => new Date(a.date) - new Date(b.date));
             displayJobs(sorted);
+            addScrollAnimation();
         });
 
         // Search jobs
@@ -316,8 +264,10 @@
             if (query) {
                 const results = fuse.search(query).map(result => result.item);
                 displayJobs(results);
+                addScrollAnimation();
             } else {
                 displayJobs(jobs);
+                addScrollAnimation();
             }
         });
     </script>
