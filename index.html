@@ -8,7 +8,7 @@
     <link rel="icon" href="tab_pic.png" type="image/png">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.6.2/fuse.min.js"></script>
     <style>
-        /* Same styles as before */
+        /* Same CSS from the working version */
         * {
             margin: 0;
             padding: 0;
@@ -42,26 +42,6 @@
             color: #e0e0e0;
         }
 
-        .sort-buttons {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        .sort-buttons button {
-            padding: 10px 20px;
-            background-color: #007bff;
-            color: #fff;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        .sort-buttons button:hover {
-            background-color: #0056b3;
-        }
-
         .job-container {
             display: flex;
             flex-wrap: wrap;
@@ -78,14 +58,6 @@
             display: flex;
             flex-direction: column;
             gap: 10px;
-            transition: transform 0.3s ease, opacity 0.3s ease;
-            opacity: 0;
-            transform: translateY(50px);
-        }
-
-        .job-tile.visible {
-            opacity: 1;
-            transform: translateY(0);
         }
 
         .job-tile .logo {
@@ -128,23 +100,6 @@
             margin-top: 50px;
         }
 
-        .job-tile .job-type {
-            font-size: 1em;
-            color: #bbb;
-        }
-
-        .job-tile .company-name {
-            font-size: 1.1em;
-            font-weight: normal;
-            color: #ddd;
-        }
-
-        .job-tile .location {
-            font-size: 1em;
-            font-style: italic;
-            color: #bbb;
-        }
-
         .job-tile .expand-icon {
             position: absolute;
             bottom: 10px;
@@ -164,13 +119,6 @@
             display: none;
             margin-top: 10px;
             font-size: 0.9em;
-        }
-
-        .details .salary,
-        .details .skills,
-        .details .description,
-        .details .other-details {
-            margin-bottom: 10px;
         }
 
         .details .skills span {
@@ -194,57 +142,41 @@
     <div class="search-bar">
         <input type="text" id="searchInput" placeholder="Search for jobs...">
     </div>
-    <div class="sort-buttons">
-        <button id="sortRecent">Sort by Recent</button>
-        <button id="sortOldest">Sort by Oldest</button>
-    </div>
     <div class="job-container" id="jobContainer"></div>
 
     <script>
-        const apiKey = 'AIzaSyAa2s_DsjZ15A6oq0BoC0v5AASOeJnAMlc';
-        const spreadsheetId = '1P5OQO7OmoTj5ol3rVgsIYkGt63n4Hu6tEdF_npyYBZk';
-        const sheetName = 'sheet1';
-        const sheetURL = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${sheetName}?key=${apiKey}`;
+        const jobs = [
+            {
+                date: "2024-12-20",
+                title: "Frontend Developer",
+                link: "https://example.com/job-frontend",
+                company: "TechCorp",
+                location: "New York, NY",
+                salary: "$60,000 - $80,000",
+                skills: ["HTML", "CSS", "JavaScript"],
+                description: "We are looking for a Frontend Developer to build web applications...",
+                otherDetails: "Remote-friendly, flexible hours"
+            },
+            {
+                date: "2024-12-18",
+                title: "Backend Engineer",
+                link: "https://example.com/job-backend",
+                company: "CodeWorks",
+                location: "San Francisco, CA",
+                salary: "$90,000 - $120,000",
+                skills: ["Node.js", "Express", "MongoDB"],
+                description: "As a Backend Engineer, you will build and optimize server-side logic...",
+                otherDetails: "In-office, full-time"
+            }
+        ];
 
-        const jobContainer = document.getElementById('jobContainer');
-        const searchInput = document.getElementById('searchInput');
-        const sortRecent = document.getElementById('sortRecent');
-        const sortOldest = document.getElementById('sortOldest');
+        const jobContainer = document.getElementById("jobContainer");
 
-        let jobs = [];
-        let fuse;
-
-        // Fetch data from Google Sheets
-        fetch(sheetURL)
-            .then(response => response.json())
-            .then(data => {
-                const rows = data.values.slice(1); // Skip headers
-                jobs = rows.map(row => ({
-                    date: row[0],
-                    type: row[1],
-                    title: row[2],
-                    link: row[3],
-                    company: row[5],
-                    location: row[6],
-                    salary: row[7],
-                    skills: row[8] ? row[8].split(',') : [],
-                    description: row[9],
-                    otherDetails: row[10]
-                }));
-                fuse = new Fuse(jobs, {
-                    keys: ['title', 'company', 'location', 'type'],
-                    threshold: 0.4,
-                });
-                displayJobs(jobs);
-            })
-            .catch(error => console.error('Error fetching data:', error));
-
-        // Display jobs
         const displayJobs = (jobs) => {
-            jobContainer.innerHTML = '';
+            jobContainer.innerHTML = "";
             jobs.forEach(job => {
-                const tile = document.createElement('div');
-                tile.className = 'job-tile';
+                const tile = document.createElement("div");
+                tile.className = "job-tile";
 
                 tile.innerHTML = `
                     <img src="https://www.google.com/s2/favicons?domain=${new URL(job.link).hostname}" alt="Logo" class="logo">
@@ -253,34 +185,24 @@
                         <img src="https://img.icons8.com/ios-glyphs/30/external-link.png" alt="Link">
                     </button>
                     <div class="job-title">${job.title}</div>
-                    <div class="job-type">${job.type}</div>
-                    <div class="company-name">${job.company}</div>
-                    <div class="location">${job.location}</div>
-                    <button class="expand-icon">
-                        <img src="https://img.icons8.com/ios-glyphs/30/plus.png" alt="Expand">
-                    </button>
                     <div class="details">
-                        <div class="salary"><strong>Salary:</strong> ${job.salary}</div>
-                        <div class="skills">
-                            <strong>Skills:</strong>
-                            ${job.skills.map(skill => `<span>${skill}</span>`).join('')}
-                        </div>
-                        <div class="description"><strong>Description:</strong> ${job.description.slice(0, 150)}...</div>
-                        <div class="other-details"><strong>Other Details:</strong> ${job.otherDetails.slice(0, 150)}...</div>
+                        <div><strong>Company:</strong> ${job.company}</div>
+                        <div><strong>Location:</strong> ${job.location}</div>
+                        <div><strong>Salary:</strong> ${job.salary}</div>
+                        <div><strong>Description:</strong> ${job.description}</div>
+                        <div><strong>Other Details:</strong> ${job.otherDetails}</div>
                     </div>
                 `;
 
-                tile.querySelector('.link-icon').addEventListener('click', () => {
-                    window.open(job.link, '_blank');
-                });
-
-                tile.querySelector('.expand-icon').addEventListener('click', () => {
-                    tile.classList.toggle('expanded');
+                tile.querySelector(".link-icon").addEventListener("click", () => {
+                    window.open(job.link, "_blank");
                 });
 
                 jobContainer.appendChild(tile);
             });
         };
+
+        displayJobs(jobs);
     </script>
 </body>
 
