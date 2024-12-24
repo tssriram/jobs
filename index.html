@@ -8,6 +8,7 @@
     <link rel="icon" href="tab_pic.png" type="image/png">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.6.2/fuse.min.js"></script>
     <style>
+        /* Same styles as before */
         * {
             margin: 0;
             padding: 0;
@@ -223,7 +224,6 @@
                     type: row[1],
                     title: row[2],
                     link: row[3],
-                    logo: row[4], // Assuming the logo URL is in column 4
                     company: row[5],
                     location: row[6],
                     salary: row[7],
@@ -247,7 +247,7 @@
                 tile.className = 'job-tile';
 
                 tile.innerHTML = `
-                    <img src="${job.logo}" alt="Logo" class="logo">
+                    <img src="https://www.google.com/s2/favicons?domain=${new URL(job.link).hostname}" alt="Logo" class="logo">
                     <div class="date">${new Date(job.date).toLocaleDateString()}</div>
                     <button class="link-icon">
                         <img src="https://img.icons8.com/ios-glyphs/30/external-link.png" alt="Link">
@@ -281,8 +281,6 @@
                 jobContainer.appendChild(tile);
             });
         };
-
-        // Sort and Search functionality (same as before)
     </script>
 </body>
 
